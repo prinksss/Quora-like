@@ -1,0 +1,39 @@
+{% extends 'quora_app/base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questions List</title>
+</head>
+<body>
+    <h1>{{ question.title }}</h1>
+    <p>{{ question.content }}</p>
+    <h2>Answers</h2>
+    <ul>
+        {% for answer in answers %}
+        <p>{{ answer.content }}</p>
+        {% if user.is_authenticated %}
+            {% if user not in answer.likes.all %}
+                <a href="{% url 'like_answer' question_id=question.id answer_id=answer.id %}">Like</a>
+            {% else %}
+                <a href="{% url 'like_answer' question_id=question.id answer_id=answer.id %}">Unlike</a>
+             {% endif %}
+             {% else %}
+                <a href="{% url 'like_answer' question_id=question.id answer_id=answer.id %}">Like</a>
+            {% endif %}
+        {% endfor %}
+    </ul>
+
+    <h2>Post an Answer</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button type="submit">Post Answer</button>
+    </form>
+    <a href="{% url 'home' %}">Back to Home</a>
+</body>
+</html>
+{% endblock %}

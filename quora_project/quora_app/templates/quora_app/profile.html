@@ -1,0 +1,12 @@
+{% extends 'quora_app/base.html' %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+  <h1>Welcome, {{ user.username }}!</h1>
+  <p>Email: {{ user.email }}</p>
+{% else %}
+  <p>Please log in to view your profile.</p>
+{% endif %}
+
+{% endblock %}

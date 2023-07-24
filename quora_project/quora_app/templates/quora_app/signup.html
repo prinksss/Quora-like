@@ -1,0 +1,43 @@
+{% extends 'quora_app/base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quora-like website - Signup</title>
+
+</head>
+</head>
+<body>
+    <h1>Sign Up</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button type="submit">Sign Up</button>
+    </form>
+    <script>
+        function checkPasswordStrength() {
+            var password = document.getElementById('id_password').value;
+            var strengthIndicator = document.getElementById('password-strength-indicator');
+
+            var strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
+            var moderateRegex = new RegExp("^(?=.*[a-zA-Z])(?=.*[0-9])(?=.{8,})");
+
+            if (strongRegex.test(password)) {
+                strengthIndicator.innerHTML = 'Strong';
+                strengthIndicator.style.color = 'green';
+            } else if (moderateRegex.test(password)) {
+                strengthIndicator.innerHTML = 'Moderate';
+                strengthIndicator.style.color = 'orange';
+            } else {
+                strengthIndicator.innerHTML = 'Weak';
+                strengthIndicator.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
+
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Post an Answer</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Post Answer</button>
+  </form>
+  <a href="{% url 'view_question' pk=question.pk %}">Back to Question</a>
+{% endblock %}
