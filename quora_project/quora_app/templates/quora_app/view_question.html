@@ -7,6 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questions List</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
 </head>
 <body>
     <h1>{{ question.title }}</h1>
@@ -14,21 +16,30 @@
     <h2>Answers</h2>
     <ul>
         {% for answer in answers %}
-        <p>{{ answer.content }}</p>
-        {% if user.is_authenticated %}
-            {% if user not in answer.likes.all %}
-                <a href="{% url 'like_answer' question_id=question.id answer_id=answer.id %}">Like</a>
-            {% else %}
-                <a href="{% url 'like_answer' question_id=question.id answer_id=answer.id %}">Unlike</a>
-             {% endif %}
-             {% else %}
-                <a href="{% url 'like_answer' question_id=question.id answer_id=answer.id %}">Like</a>
-            {% endif %}
+            <p>{{ answer.content }}</p>
+            <a href="{% url 'like_answer' question_id=question.id answer_id=answer.id %}">
+                {% if user.is_authenticated and user in answer.likes.all %}
+                    <i class="fas fa-thumbs-up"></i> <!-- Icon for "Unlike" -->
+                {% else %}
+                    <i class="far fa-thumbs-up"></i> <!-- Icon for "Like" -->
+                {% endif %}
+            </a>
+            <span>{{ answer.likes.count }}</span> <!-- Like count -->
+            <a href="{% url 'dislike_answer' question_id=question.id answer_id=answer.id %}">
+                {% if user.is_authenticated and user in answer.dislikes.all %}
+                    <i class="fas fa-thumbs-down"></i> <!-- Icon for "Undislike" -->
+                {% else %}
+                    <i class="far fa-thumbs-down"></i> <!-- Icon for "Dislike" -->
+                {% endif %}
+            </a>
+            <span>{{ answer.dislikes.count }}</span> <!-- Dislike count -->
+            
         {% endfor %}
     </ul>
+    
 
     <h2>Post an Answer</h2>
-    <form method="POST">
+    <form method="POST" action="{% url 'post_answer' pk=question.pk %}">
         {% csrf_token %}
         {{form.as_p}}
         <button type="submit">Post Answer</button>

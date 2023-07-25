@@ -21,9 +21,8 @@ def SignupPage(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
+            user = form.save()
+            login(request, user)
             return redirect('home')
     else:
         form = SignUpForm()
@@ -98,6 +97,7 @@ def profile(request):
     return render(request, 'quora_app/profile.html', {'username': username, 'email': email})
 
 @login_required
+
 def post_question(request):
     if request.method == 'POST':
         form = QuestionForm(request.POST)
@@ -145,31 +145,67 @@ class QuestionDetailView(DetailView,FormMixin):
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-class AnswerCreateView(LoginRequiredMixin, FormView):
-    template_name = 'quora_app/answer_form.html'
-    form_class = AnswerForm
-    success_url = reverse_lazy('view_question')
+from django.views import View
 
-    def form_valid(self, form):
-        question = Question.objects.get(pk=self.kwargs['pk'])
-        answer = form.save(commit=False)
-        answer.question = question
+class AnswerCreateView(View):
+    # template_name = 'quora_app/view_question.html'
+    # form_class = AnswerForm
+    # success_url = reverse_lazy('view_question')
+
+    # def form_valid(self, form):
+    #     question = Question.objects.get(pk=self.kwargs['pk'])
+    #     answer = form.save(commit=False)
+    #     answer.question = question
+    #     if self.request.user.is_authenticated:
+    #         answer.user = self.request.user
+    #         answer.save()
+    #         return redirect('view_question', pk=question.pk)
+    #     else:
+    #         return redirect('login')
+
+
+    def post(self, request, pk):
+        question = Question.objects.get(pk=pk)
+        form = AnswerForm(request.POST)
+        if form.is_valid():
+            answer = form.save(commit=False)
+            answer.question = question
+            if request.user.is_authenticated:
+                answer.user = request.user
+                answer.save()
+        return redirect('view_question', pk=pk)
+
+class LikeAnswerView(View):
+    def get(self, request, question_id, answer_id):
+        try:
+            answer = Answer.objects.get(pk=answer_id)
+        except Answer.DoesNotExist:
+            return redirect('view_question', pk=question_id)
         
-        if self.request.user.is_authenticated:
-            answer.user = self.request.user
-            answer.save()
-            return redirect('view_question', pk=question.pk)
-        else:
-            # Redirect to the login page if the user is not authenticated
-            return redirect('login')
+        if request.user.is_authenticated:
+            if request.user in answer.likes.all():
+                answer.likes.remove(request.user)
+            else:
+                answer.likes.add(request.user)
+        return redirect('view_question', pk=question_id)
 
-def like_answer(request,question_id, answer_id):
-    answer = get_object_or_404(Answer, id=answer_id) 
-    like, created = Like.objects.get_or_create(user=request.user, answer=answer)
-    
-    if not created:
-        like.delete()
+from django.views.generic import ListView
 
-    return redirect('view_question', question_id=question_id)
+class UserListView(ListView):
+    model = User
+    template_name = 'user_list.html'
+    context_object_name = 'users'
 
-
+class DislikeAnswerView(View):
+    def get(self, request, question_id, answer_id):
+        try:
+            answer = Answer.objects.get(pk=answer_id)
+        except Answer.DoesNotExist:
+            return redirect('view_question', pk=question_id)
+        
+        if request.user.is_authenticated:
+            if request.user in answer.dislikes.all():
+                answer.dislikes.remove(request.user)
+            else:
+                answer.dislikes.add(request.user)
+        return redirect('view_question', pk=question_id)
